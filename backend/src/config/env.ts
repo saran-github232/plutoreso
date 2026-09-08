@@ -12,7 +12,14 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     PORT: z.coerce.number().int().positive().default(4000),
-    CLIENT_ORIGIN: z.string().trim().optional()
+    CLIENT_ORIGIN: z.string().trim().optional(),
+    // SERVER-ONLY (docs/ENVIRONMENT.md). Optional locally so the API boots
+    // honestly without a database (/api/health/db reports "not_configured");
+    // REQUIRED in production.
+    DATABASE_URL: z.string().url().optional(),
+    // Force TLS on/off for the database connection. Default: auto-detect
+    // (remote hosts get TLS, localhost does not). Values: "true" | "false".
+    DATABASE_SSL: z.enum(["true", "false"]).optional()
   })
   .superRefine((value, ctx) => {
     if (value.NODE_ENV === "production" && !value.CLIENT_ORIGIN) {
@@ -20,6 +27,13 @@ const envSchema = z
         code: "custom",
         message:
           "CLIENT_ORIGIN is required when NODE_ENV=production so CORS can allow only the trusted frontend origin."
+      });
+    }
+    if (value.NODE_ENV === "production" && !value.DATABASE_URL) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "DATABASE_URL is required when NODE_ENV=production (server-side only; never exposed to the frontend)."
       });
     }
   });

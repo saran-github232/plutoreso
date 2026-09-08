@@ -52,9 +52,7 @@
   `VITE_API_URL`. All credentials, integrations, and business rules live server-side.
 - **CORS:** explicit allowlist on the backend (`CLIENT_ORIGIN`, required in production).
 
-## Frontend architecture (Phase 2)
-
-- **Routing** — react-router-dom (`BrowserRouter`): `/`, `/products`, `/products/:slug`, `/cart`,
+## Frontend architecture (Phase 2) `/`, `/products`, `/products/:slug`, `/cart`,
   `/about`, `/faq`, `/contact`, `/privacy`, `/terms`, `/refund-policy`, `/delivery-policy`,
   `/system-status`, `*` (404). Placeholder pages render honest "coming later" copy — no fake
   content is invented.

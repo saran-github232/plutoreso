@@ -22,6 +22,14 @@
 - **Public-only frontend configuration** (Phase 2) — the design system and sample data contain no
   secrets; the WhatsApp CTA reads an optional public `VITE_WHATSAPP_NUMBER` and renders an honest
   "coming soon" state when unset; no fake auth or payment UI exists anywhere.
+- **Server-only database access** (Phase 3) — `DATABASE_URL`/`DATABASE_SSL` are backend-only env
+  vars (validated at startup, required in production); the frontend never holds or sees database
+  credentials; the DB client only runs parameterized queries.
+- **Database lockdown** (Phase 3) — RLS enabled on all 17 tables with zero policies (default deny)
+  plus explicit revokes from `anon`/`authenticated`; no "allow all" policies anywhere.
+- **Honest readiness surface** (Phase 3) — `/api/health/db` returns 503 with a safe reason
+  (`not_configured` / `unreachable`); raw driver errors and connection details go to server logs
+  only and are never returned to clients; no fake "database healthy" claims.
 - **No fake security** — no fake authentication, no fake payment success, no product data exists.
   Nothing is claimed secure that is not implemented.
 
@@ -31,8 +39,9 @@
 | --- | --- | --- |
 | Admin authentication/authorization | 4 | Password hashing, secure sessions/cookies, rate limiting, backend enforcement — frontend-only security is never acceptable. |
 | Payment verification | 8 | Razorpay signature verification server-side; never trust frontend success. |
-| Webhook security | 9 | Raw-body signature validation, idempotency, no duplicate fulfillment on retries. |
-| Entitlement/access control | 10 | Digital delivery only after server-verified payment + entitlement check; no raw Drive URLs public. |
+| Webhook security | 9 | Raw-body signature validation, idempotency via the `webhook_events` table (unique provider + body fingerprint), no duplicate fulfillment on retries. |
+| Entitlement/access control | 10 | Digital delivery only after server-verified payment + entitlement check; no raw Drive URLs public (`products.drive_folder_id` is server-only). |
+| Customer-facing RLS policies | 4+/10 | Phase 3 ships default-deny RLS everywhere; per-client policies are added only when those clients exist, and re-verified. |
 | Rate limiting / hardening | 14 | Per Master Guide §25 and §50. |
 | CSRF protection | 4+ | Applied where applicable (cookie-based sessions). |
 

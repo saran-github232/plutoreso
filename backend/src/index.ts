@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { closeDatabase } from "./db/client.js";
 import { createApp } from "./app.js";
 import { env, isProduction } from "./config/env.js";
 
@@ -15,7 +16,7 @@ const server = app.listen(env.PORT, () => {
 function shutdown(signal: string): void {
   console.log(`[api] ${signal} received — shutting down gracefully`);
   server.close(() => {
-    process.exit(0);
+    void closeDatabase().finally(() => process.exit(0));
   });
   // Force-exit if connections do not drain in time.
   setTimeout(() => {

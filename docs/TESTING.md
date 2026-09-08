@@ -38,6 +38,22 @@ Runtime checks:
 - Limitation: no real-browser session was available — responsive rendering, console cleanliness,
   and screen-reader behavior were verified via build + preview + code review only (see PROJECT_STATUS).
 
+## Phase 3 verification (2026-09-08)
+
+- `npm install` (adds `pg`, `@types/pg`, `globals`): PASS
+- `npm run lint`: PASS (first run caught missing Node globals for the `.mjs` script — fixed by
+  adding `globals.node` to the backend ESLint config; re-run PASS)
+- `npm run typecheck`: PASS (both workspaces, strict)
+- `npm run build`: PASS — backend compiles `src/db/*`; frontend rebuild unchanged (86 kB gzip JS)
+- `/api/health`: PASS (200, process health — unchanged semantics)
+- `/api/health/db` **without** `DATABASE_URL`: PASS — 503 `{"database":"not_configured"}` (honest)
+- `/api/health/db` **with** a dummy local `DATABASE_URL` (test-only placeholder, nothing
+  listening): PASS — 503 `{"database":"unreachable"}`; driver error logged server-side only
+- `npm run db:migrate` without credentials: PASS — exits 1 with a clear message (no fake success)
+- **Migration SQL was NOT executed** — no local Postgres and no Supabase credentials exist in this
+  environment. Schema is review-ready; live application is a documented manual step
+  (see `docs/DATABASE.md` §setup). This is LOCAL SCHEMA VALIDATION, not live verification.
+
 ## Manual UI checks (Phase 1)
 
 - Layout at mobile / tablet / desktop widths, no horizontal overflow, working navigation,

@@ -21,17 +21,22 @@ No real credentials exist or are required in Phase 1. Do not invent values.
 | `NODE_ENV` | No (default `development`) | `development` \| `test` \| `production` | Example only |
 | `PORT` | No (default `4000`) | HTTP port the API listens on | Example only |
 | `CLIENT_ORIGIN` | **Yes in production** | CORS allowlist origin(s), comma-separated; validated at startup | Example only |
+| `DATABASE_URL` | **Yes in production** (optional locally) | Supabase PostgreSQL connection string — **SERVER-ONLY**; the API boots without it and `/api/health/db` reports `not_configured` | Placeholder name only — no value |
+| `DATABASE_SSL` | No | Force DB TLS: `true` \| `false`; default auto-detect (remote → TLS, localhost → off) — **SERVER-ONLY** | Placeholder name only — no value |
 
 Future backend variables (documented in `backend/.env.example`; do **not** create until their phase):
 
 | Variable | Phase | Notes |
 | --- | --- | --- |
-| `DATABASE_URL` | 3 | Supabase PostgreSQL connection string |
 | `SESSION_SECRET` | 4 | Admin session signing |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | 8 | Server-side only — never expose |
 | `RAZORPAY_WEBHOOK_SECRET` | 9 | Server-side only |
 | `GOOGLE_DRIVE_*` | 10 | Delivery credentials stay server-side |
 | `EMAIL_*` / `SMTP_*` | 12 | Transactional email provider |
+
+`DATABASE_URL` and `DATABASE_SSL` are **SERVER-ONLY**: they exist only in `backend/.env` /
+Render environment settings, are never prefixed `VITE_`, never committed, and never printed in
+logs. See [`DATABASE.md`](DATABASE.md) for the connection architecture.
 
 ## Frontend — `frontend/.env`
 
