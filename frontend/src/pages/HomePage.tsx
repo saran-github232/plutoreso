@@ -1,23 +1,42 @@
-import { SystemStatus } from "../components/SystemStatus";
+import { BundlesTeaser } from "../components/home/BundlesTeaser";
+import { FaqPreview } from "../components/home/FaqPreview";
+import { Hero } from "../components/home/Hero";
+import { ProductShowcaseSection } from "../components/home/ProductShowcaseSection";
+import { SocialProofPlaceholder } from "../components/home/SocialProofPlaceholder";
+import { ValueProps } from "../components/home/ValueProps";
+import { WhyPlutoReso } from "../components/home/WhyPlutoReso";
+import { WhatsAppCta } from "../components/WhatsAppCta";
+import { MOCK_BEST_SELLERS, MOCK_FEATURED } from "../data/mock-products";
 
+/**
+ * Homepage foundation (Master Guide §7 structure).
+ * Uses clearly-marked sample data only; real content arrives via the
+ * Admin Panel and backend in later phases.
+ */
 export function HomePage() {
   return (
-    <main id="main-content" className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6 sm:py-16">
-      <section className="max-w-2xl">
-        <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
-          Digital products platform
-        </p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-          Premium digital products, delivered instantly.
-        </h1>
-        <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
-          PlutoReso is an Indian digital-products store currently under active development. This is
-          the Phase 1 application shell — the storefront, catalog, checkout and delivery experience
-          arrive in upcoming phases.
-        </p>
-      </section>
-
-      <SystemStatus />
-    </main>
+    <>
+      <Hero />
+      <ValueProps />
+      <ProductShowcaseSection
+        id="featured"
+        tone="surface"
+        eyebrow="Featured"
+        title="Featured products"
+        note="Sample products shown for design preview — the real catalog arrives with the storefront phases."
+        products={MOCK_FEATURED}
+      />
+      <ProductShowcaseSection
+        id="best-sellers"
+        eyebrow="Popular"
+        title="Best sellers"
+        products={MOCK_BEST_SELLERS}
+      />
+      <BundlesTeaser />
+      <WhyPlutoReso />
+      <SocialProofPlaceholder />
+      <FaqPreview />
+      <WhatsAppCta />
+    </>
   );
 }

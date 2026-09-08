@@ -23,6 +23,7 @@ Customers always interact with the custom domain — never with the Render backe
 | Vercel | Build command | `npm run build` |
 | Vercel | Output | `frontend/dist` |
 | Vercel | Env vars | `VITE_API_URL` (public only) — see [`ENVIRONMENT.md`](ENVIRONMENT.md) |
+| Vercel | SPA rewrites | `frontend/vercel.json` prepared (all paths → `/index.html`) |
 | Render | Root Directory | `backend` |
 | Render | Build command | `npm install && npm run build` |
 | Render | Start command | `npm run start` (`node dist/index.js`) |

@@ -33,7 +33,10 @@
 | --- | --- |
 | `frontend/` | Storefront UI (Vercel target). Public configuration only. |
 | `frontend/src/lib/api.ts` | Typed public API client — the only place that talks to the backend. |
-| `frontend/src/components/`, `pages/` | Foundation shell (Header, Footer, HomePage, SystemStatus). |
+| `frontend/src/components/ui/` | Design-system primitives (Button, Card, ProductCard, Drawer, Toast, states). |
+| `frontend/src/components/layout/`, `home/` | Application shell (Header, Footer) and homepage sections. |
+| `frontend/src/pages/`, `layouts/` | Route pages and SiteLayout (skip link → header → page → footer). |
+| `frontend/src/types/`, `data/`, `config/` | Product type, clearly-marked sample data, public site config. |
 | `backend/` | HTTP API (Render target). Owns all secrets, integrations, business rules. |
 | `backend/src/config/env.ts` | zod-validated configuration; fail-fast startup. |
 | `backend/src/app.ts` | Express app factory: security pipeline + route mounting. |
@@ -48,6 +51,25 @@
 - **Secret boundary:** the frontend contains no secrets; the only frontend env var is the public
   `VITE_API_URL`. All credentials, integrations, and business rules live server-side.
 - **CORS:** explicit allowlist on the backend (`CLIENT_ORIGIN`, required in production).
+
+## Frontend architecture (Phase 2)
+
+- **Routing** — react-router-dom (`BrowserRouter`): `/`, `/products`, `/products/:slug`, `/cart`,
+  `/about`, `/faq`, `/contact`, `/privacy`, `/terms`, `/refund-policy`, `/delivery-policy`,
+  `/system-status`, `*` (404). Placeholder pages render honest "coming later" copy — no fake
+  content is invented.
+- **Layout** — `layouts/SiteLayout`: skip link → sticky Header (desktop nav + mobile Drawer) →
+  `<main>` Outlet → Footer. Header/Footer are separate from any future admin shell.
+- **Design system** — tokens in `src/index.css` (`@theme`); primitives in `src/components/ui/`;
+  icons via `lucide-react`; fonts self-hosted (Inter + Sora variable). See
+  [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md).
+- **Data boundary** — UI primitives are prop-driven. `Product` (`src/types/product.ts`) is the
+  storefront projection of the Master Guide §3 model; sample data is isolated in
+  `src/data/mock-products.ts` and clearly marked; the real catalog arrives via backend phases.
+- **State** — URL state (router), local component state, and a Toast context. No global data
+  layer yet; it arrives with the backend phases.
+- **SPA hosting** — `frontend/vercel.json` contains SPA rewrites, prepared for the deployment
+  phase (nothing is deployed yet).
 
 ## Backend request pipeline (as built)
 

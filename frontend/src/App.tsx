@@ -1,19 +1,91 @@
-import { Footer } from "./components/Footer";
-import { Header } from "./components/Header";
+import { Route, Routes } from "react-router-dom";
+import { SiteLayout } from "./layouts/SiteLayout";
+import { CartPage } from "./pages/CartPage";
 import { HomePage } from "./pages/HomePage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { ProductDetailPage } from "./pages/ProductDetailPage";
+import { ProductsPage } from "./pages/ProductsPage";
+import { SystemStatusPage } from "./pages/SystemStatusPage";
 
+/**
+ * Public storefront routes (Phase 2 routing foundation).
+ * Placeholder pages carry honest "coming later" copy — no fake content.
+ */
 export default function App() {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-slate-900 focus:shadow-md"
-      >
-        Skip to content
-      </a>
-      <Header />
-      <HomePage />
-      <Footer />
-    </div>
+    <Routes>
+      <Route element={<SiteLayout />}>
+        <Route index path="/" element={<HomePage />} />
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products/:slug" element={<ProductDetailPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route
+          path="/about"
+          element={
+            <PlaceholderPage
+              title="About PlutoReso"
+              description="The About page will tell the PlutoReso story once the owner supplies the business content through the admin workflow."
+            />
+          }
+        />
+        <Route
+          path="/faq"
+          element={
+            <PlaceholderPage
+              title="Frequently asked questions"
+              description="The complete FAQ will be published here. The homepage already answers the most common delivery questions."
+            />
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <PlaceholderPage
+              title="Contact us"
+              description="Contact details and a contact form will be connected in a later phase. WhatsApp support will also be linked here once configured."
+            />
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <PlaceholderPage
+              title="Privacy Policy"
+              description="Policy content is drafted with the owner and published before launch (required before Razorpay live activation)."
+            />
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <PlaceholderPage
+              title="Terms & Conditions"
+              description="Policy content is drafted with the owner and published before launch (required before Razorpay live activation)."
+            />
+          }
+        />
+        <Route
+          path="/refund-policy"
+          element={
+            <PlaceholderPage
+              title="Refund & Cancellation Policy"
+              description="Policy content is drafted with the owner and published before launch (required before Razorpay live activation)."
+            />
+          }
+        />
+        <Route
+          path="/delivery-policy"
+          element={
+            <PlaceholderPage
+              title="Digital Delivery Policy"
+              description="Explains how digital delivery works. Content is published before launch (required before Razorpay live activation)."
+            />
+          }
+        />
+        <Route path="/system-status" element={<SystemStatusPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   );
 }

@@ -19,6 +19,9 @@
   error details logged server-side only.
 - **Log hygiene** — request logger omits query strings so tokens/personal data in URLs are never logged.
 - **Reverse-proxy aware** — `trust proxy` set for Render/Vercel-style deployments.
+- **Public-only frontend configuration** (Phase 2) — the design system and sample data contain no
+  secrets; the WhatsApp CTA reads an optional public `VITE_WHATSAPP_NUMBER` and renders an honest
+  "coming soon" state when unset; no fake auth or payment UI exists anywhere.
 - **No fake security** — no fake authentication, no fake payment success, no product data exists.
   Nothing is claimed secure that is not implemented.
 

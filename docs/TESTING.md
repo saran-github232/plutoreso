@@ -25,6 +25,19 @@ Runtime checks:
 - Frontend: `npm run dev:frontend` → `http://localhost:5173` must render the app shell;
   the System status card should show **Connected** when the backend is running.
 
+## Phase 2 verification (2026-09-08)
+
+- `npm install` (adds react-router-dom, lucide-react, 2 fontsource packages): PASS
+- `npm run lint`: PASS (both workspaces)
+- `npm run typecheck`: PASS (both workspaces, strict)
+- `npm run build`: PASS — frontend JS 277 kB (86 kB gzip), CSS 39 kB (8.2 kB gzip), fonts split
+  into lazy unicode-range subsets; backend build unchanged and passing
+- Backend regression: `GET /api/health` → 200 JSON PASS
+- Built frontend via `vite preview`: `/` → 200 with PlutoReso markup; `/products`,
+  `/products/:slug`, `/cart` → all 200 (SPA fallback verified)
+- Limitation: no real-browser session was available — responsive rendering, console cleanliness,
+  and screen-reader behavior were verified via build + preview + code review only (see PROJECT_STATUS).
+
 ## Manual UI checks (Phase 1)
 
 - Layout at mobile / tablet / desktop widths, no horizontal overflow, working navigation,

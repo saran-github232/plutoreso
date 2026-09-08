@@ -7,17 +7,18 @@ Production-ready digital-products e-commerce platform for India — INR pricing,
 
 ## Current status
 
-**Phase 1 — Project Foundation: complete.**
+**Phase 2 — Frontend Architecture & Design System: complete.**
 
-This repository currently contains the frontend/backend scaffolding, tooling, and documentation only.
-There are no products, payments, delivery, or admin features yet. See
+The repository now has a reusable premium design system, an application shell with responsive
+navigation, a routing foundation, and a homepage structure built on clearly-marked sample data.
+There are still no real products, payments, delivery, or admin features. See
 [PROJECT_STATUS.md](PROJECT_STATUS.md) for the precise implemented / planned / not-implemented state.
 
 ## Technology stack
 
 | Layer | Technology | Status |
 | --- | --- | --- |
-| Frontend | React 19 + Vite 6 + TypeScript + Tailwind CSS 4 | Foundation shell only |
+| Frontend | React 19 + Vite 6 + TypeScript + Tailwind CSS 4 (React Router, lucide icons, self-hosted Inter + Sora) | Design system + foundation pages |
 | Backend | Node.js 22 + Express 5 + TypeScript | Foundation API only |
 | Database | Supabase PostgreSQL | Planned (Phase 3) |
 | Payments | Razorpay | Planned (Phase 8–9) |
@@ -33,13 +34,22 @@ plutoreso/
 ├── frontend/                 # React + Vite + TypeScript storefront (Vercel target)
 │   ├── public/
 │   ├── src/
-│   │   ├── components/       # Header, Footer, SystemStatus (foundation shell)
-│   │   ├── pages/            # HomePage (foundation shell)
-│   │   ├── lib/              # Public API client (no secrets)
-│   │   ├── App.tsx
-│   │   ├── main.tsx
-│   │   └── index.css         # Tailwind 4 base theme tokens
+│   │   ├── components/
+│   │   │   ├── ui/           # Design-system primitives (Button, Card, ProductCard, …)
+│   │   │   ├── layout/       # Header, Footer (application shell)
+│   │   │   ├── home/         # Homepage sections (Hero, ValueProps, …)
+│   │   │   └── SystemStatus  # Phase 1 backend-health card (dev utility page)
+│   │   ├── layouts/          # SiteLayout (skip link → header → page → footer)
+│   │   ├── pages/            # Route pages (Home, Products, Cart, placeholders, 404)
+│   │   ├── lib/              # cn, money (INR formatting), api client, ScrollToTop
+│   │   ├── types/            # Product type (storefront projection of Master Guide §3)
+│   │   ├── config/           # Public site configuration (nav, WhatsApp boundary)
+│   │   ├── data/             # Clearly-marked mock data (design preview only)
+│   │   ├── App.tsx           # Route table
+│   │   ├── main.tsx          # Router + providers + fonts
+│   │   └── index.css         # Design-system tokens (@theme)
 │   ├── .env.example          # PUBLIC env vars only
+│   ├── vercel.json           # SPA rewrites (prepared for deployment phase)
 │   └── package.json
 ├── backend/                  # Node + Express + TypeScript API (Render target)
 │   ├── src/
@@ -96,7 +106,8 @@ npm run dev
 
 - `backend/.env.example` — private server-side configuration placeholder names only
   (`NODE_ENV`, `PORT`, `CLIENT_ORIGIN`; future phases add `DATABASE_URL`, `RAZORPAY_*`, etc.).
-- `frontend/.env.example` — **public** configuration only (`VITE_API_URL`).
+- `frontend/.env.example` — **public** configuration only (`VITE_API_URL`, optional
+  `VITE_WHATSAPP_NUMBER`).
 - **Never commit real `.env` files. Never place secrets in frontend env vars.**
   Details: [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md).
 
@@ -111,6 +122,21 @@ npm run dev
   limits, request logging, central error handling, validated env config, `/api/health`
 - Tooling: ESLint (both workspaces), strict TypeScript configs, build scripts
 - Documentation set + `.env.example` files + `.gitignore` (secrets excluded)
+
+### Implemented (Phase 2 — Frontend Architecture & Design System)
+
+- Design-system tokens (colors, semantic roles, typography pairing, spacing, radii, shadows,
+  motion) centralized in `index.css` and documented in `docs/DESIGN_SYSTEM.md`
+- Reusable UI primitives: Button system, IconButton, Badge, Card, Container, Section, Skeleton,
+  EmptyState, ErrorState, PriceDisplay (INR via minor units), Divider, form controls
+  (Input/Textarea/Select/Checkbox/FormField), Drawer, Toast, ProductCard + ProductGrid
+- Routing foundation (React Router): home, catalog preview, product-detail placeholder, cart
+  (empty state), about/FAQ/contact placeholders, policy placeholders, 404, system status
+- Application shell: sticky header with desktop nav + mobile drawer, footer with future-ready
+  link groups, accessible layout with skip link
+- Homepage foundation per Master Guide §7 (honest content only — sample products clearly marked,
+  no fake testimonials/numbers/scarcity)
+- SPA rewrites prepared (`frontend/vercel.json`) for the deployment phase
 
 ### Planned (future phases — see Master Guide §50)
 
@@ -132,6 +158,7 @@ the owner will populate products via the Admin Panel in a later phase.
 | Document | Purpose |
 | --- | --- |
 | [`docs/MASTER-GUIDE.md`](docs/MASTER-GUIDE.md) | Source of truth — all rules and architecture |
+| [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Design tokens, components, conventions |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Foundation architecture and boundaries |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Security model now and per future phase |
 | [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) | Environment variable reference and rules |
