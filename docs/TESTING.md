@@ -54,6 +54,17 @@ Runtime checks:
   environment. Schema is review-ready; live application is a documented manual step
   (see `docs/DATABASE.md` §setup). This is LOCAL SCHEMA VALIDATION, not live verification.
 
+## Phase 4 verification (2026-09-08)
+
+- `npm install` (adds `argon2`, `express-rate-limit`, `vitest`, `@vitest/*`): PASS
+- `npm run lint`: PASS (both workspaces)
+- `npm run typecheck`: PASS (both workspaces, strict)
+- `npm run build`: PASS — frontend JS 286 kB (88 kB gzip), CSS 40 kB (8.3 kB gzip); backend compiles `src/auth/*`, `src/middleware/rateLimit.ts`, `src/routes/{auth,admin}.routes.ts`
+- `npm run test` (backend vitest): **16/16 PASS** — login (valid/invalid password/email/inactive/malformed), session (valid/expired/missing/invalid), logout (invalidates session), authorization (401/200/403), security (password hash never returned, safe generic errors)
+- `/api/health`: PASS (200, process health — unchanged)
+- `/api/health/db` without `DATABASE_URL`: PASS (503 `not_configured` — unchanged)
+- **Live Supabase NOT verified** — no credentials in this environment. Auth code is unit-tested against an in-memory mock of the DB layer; live DB round-trips are a documented manual step (see `docs/DATABASE.md` §setup). This is LOCAL UNIT TESTING, not live verification.
+
 ## Manual UI checks (Phase 1)
 
 - Layout at mobile / tablet / desktop widths, no horizontal overflow, working navigation,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
 
 /**
  * Central, validated backend configuration.
@@ -19,21 +20,44 @@ const envSchema = z
     DATABASE_URL: z.string().url().optional(),
     // Force TLS on/off for the database connection. Default: auto-detect
     // (remote hosts get TLS, localhost does not). Values: "true" | "false".
-    DATABASE_SSL: z.enum(["true", "false"]).optional()
+    DATABASE_SSL: z.enum(["true", "false"]).optional(),
+
+    // --- Phase 4: Admin authentication configuration ---------------------
+    // Opaque, owner-generated bootstrap token used exactly once (or more
+    // times while present) to provision the first admin via the bootstrap
+    // endpoint. NOT a user-facing credential. MUST be absent from source
+    // control and set only by the owner. When absent, bootstrap returns 404
+    // (endpoint appears not to exist).
+    BOOTSTRAP_TOKEN: z.string().optional(),
+    // Session cookie signing/rotation secret. Required in production.
+    SESSION_SECRET: z.string().optional(),
+    // Admin login brute-force protection.
+    LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+    LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().positive().default(15)
   })
   .superRefine((value, ctx) => {
     if (value.NODE_ENV === "production" && !value.CLIENT_ORIGIN) {
       ctx.addIssue({
         code: "custom",
         message:
-          "CLIENT_ORIGIN is required when NODE_ENV=production so CORS can allow only the trusted frontend origin."
+          "CLIENT_ORIGIN is required when NODE_ENV=production so CORS can allow only the trusted frontend origin.",
       });
     }
     if (value.NODE_ENV === "production" && !value.DATABASE_URL) {
       ctx.addIssue({
         code: "custom",
         message:
-          "DATABASE_URL is required when NODE_ENV=production (server-side only; never exposed to the frontend)."
+          "DATABASE_URL is required when NODE_ENV=production (server-side only; never exposed to the frontend).",
+      });
+    }
+    // SESSION_SECRET is required in production for cookie tampering resistance.
+    // In development a per-process ephemeral value is generated if unset
+    // (see `resolvedSessionSecret`), but production must be explicit.
+    if (value.NODE_ENV === "production" && !value.SESSION_SECRET) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "SESSION_SECRET is required when NODE_ENV=production (server-side only).",
       });
     }
   });
@@ -50,6 +74,25 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export const isProduction = env.NODE_ENV === "production";
+
+/**
+ * Session signing secret. In production this MUST be a stable, owner-provided
+ * value (validated above). In non-production environments a per-process
+ * ephemeral secret is generated so the server still boots for local dev
+ * without configuration — but sessions will not survive a restart.
+ */
+export const resolvedSessionSecret: string =
+  env.SESSION_SECRET ??
+  (isProduction
+    ? (() => {
+        throw new Error("SESSION_SECRET required in production");
+      })()
+    : cryptoRandomSecret());
+
+function cryptoRandomSecret(): string {
+  // Node >= 19 exposes crypto.randomBytes; fine for non-prod ephemeral use.
+  return randomBytes(32).toString("hex");
+}
 
 const DEV_ORIGINS = ["http://localhost:5173", "http://localhost:4173"];
 

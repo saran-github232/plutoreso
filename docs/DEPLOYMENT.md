@@ -28,7 +28,7 @@ Customers always interact with the custom domain — never with the Render backe
 | Render | Build command | `npm install && npm run build` |
 | Render | Start command | `npm run start` (`node dist/index.js`) |
 | Render | Health check path | `/api/health` (process) · `/api/health/db` (database readiness) |
-| Render | Env vars | `NODE_ENV=production`, `CLIENT_ORIGIN=https://<domain>`, phase-appropriate secrets |
+| Render | Env vars | `NODE_ENV=production`, `CLIENT_ORIGIN=https://<domain>`, `DATABASE_URL`, `SESSION_SECRET` (Phase 4+), phase-appropriate secrets |
 
 ## Pre-launch obligations (Master Guide §52)
 

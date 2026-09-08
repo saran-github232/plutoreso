@@ -23,12 +23,15 @@ No real credentials exist or are required in Phase 1. Do not invent values.
 | `CLIENT_ORIGIN` | **Yes in production** | CORS allowlist origin(s), comma-separated; validated at startup | Example only |
 | `DATABASE_URL` | **Yes in production** (optional locally) | Supabase PostgreSQL connection string — **SERVER-ONLY**; the API boots without it and `/api/health/db` reports `not_configured` | Placeholder name only — no value |
 | `DATABASE_SSL` | No | Force DB TLS: `true` \| `false`; default auto-detect (remote → TLS, localhost → off) — **SERVER-ONLY** | Placeholder name only — no value |
+| `BOOTSTRAP_TOKEN` | 4 | Owner-generated token for one-time initial admin provisioning via `POST /api/auth/bootstrap`. **SERVER-ONLY**; when absent the endpoint returns 404. | Placeholder name only — no value |
+| `SESSION_SECRET` | **4 (required in production)** | Admin session cookie signing/rotation secret. In development a per-process ephemeral value is generated if unset; production MUST set a stable value. **SERVER-ONLY**. | Placeholder name only — no value |
+| `LOGIN_MAX_ATTEMPTS` | 4 | Max failed admin login attempts before lockout (default `5`). **SERVER-ONLY**. | Example only |
+| `LOGIN_LOCKOUT_MINUTES` | 4 | Lockout duration in minutes after exceeding `LOGIN_MAX_ATTEMPTS` (default `15`). **SERVER-ONLY**. | Example only |
 
 Future backend variables (documented in `backend/.env.example`; do **not** create until their phase):
 
 | Variable | Phase | Notes |
 | --- | --- | --- |
-| `SESSION_SECRET` | 4 | Admin session signing |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | 8 | Server-side only — never expose |
 | `RAZORPAY_WEBHOOK_SECRET` | 9 | Server-side only |
 | `GOOGLE_DRIVE_*` | 10 | Delivery credentials stay server-side |
