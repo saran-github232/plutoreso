@@ -33,7 +33,10 @@
 | --- | --- |
 | `frontend/` | Storefront UI (Vercel target). Public configuration only. |
 | `frontend/src/lib/admin-api.ts` | Admin catalog API client (Phase 5) — session-cookie fetch wrapper, product/category/media calls. |
+| `frontend/src/lib/catalog.ts` | Public catalog API client (Phase 6) — no-auth fetch of `GET /api/products`, `/api/products/:slug`, `/api/categories`; projects customer-safe DTOs onto the storefront `Product` model. |
+| `frontend/src/lib/seo.ts` | Per-page `<title>`/meta-description helper (Phase 6) — catalog SEO fields only, resets to site defaults. |
 | `frontend/src/pages/AdminProductsPage.tsx`, `AdminProductFormPage.tsx`, `AdminCategoriesPage.tsx` | Phase 5 admin catalog UI (list with search/filter/pagination, create/edit form with rupee→paise conversion, categories). |
+| `frontend/src/pages/ProductsPage.tsx`, `ProductDetailPage.tsx`, `HomePage.tsx` | Phase 6 storefront — live catalog listing (search/category/sort/pagination in URL state), product detail (gallery, benefits, features, preview), homepage featured/best-seller rows from the API. |
 | `frontend/src/components/ui/` | Design-system primitives (Button, Card, ProductCard, Drawer, Toast, states). |
 | `frontend/src/components/layout/`, `home/` | Application shell (Header, Footer) and homepage sections. |
 | `frontend/src/pages/`, `layouts/` | Route pages and SiteLayout (skip link → header → page → footer). |
@@ -41,12 +44,14 @@
 | `backend/` | HTTP API (Render target). Owns all secrets, integrations, business rules. |
 | `backend/src/config/env.ts` | zod-validated configuration; fail-fast startup. |
 | `backend/src/app.ts` | Express app factory: security pipeline + route mounting. |
-| `backend/src/routes/` | Route registry (`/api/health` today; future mounts documented inline). |
-| `backend/src/validation/` | Phase 5 Zod schemas — product, category, product-media (body/query/param validation). |
-| `backend/src/repositories/` | Phase 5 typed `pg` data-access — `product.repository.ts`, `category.repository.ts`, `product-media.repository.ts` (parameterized SQL, soft-lifecycle). |
+| `backend/src/routes/` | Route registry (`/api/health`, `/api/auth`, `/api/admin`, `/api/products`, `/api/products/:slug`, `/api/categories`; future mounts documented inline). |
+| `backend/src/validation/` | Phase 5/6 Zod schemas — admin product, category, product-media; public catalog list/detail query + slug params (strict, capped). |
+| `backend/src/repositories/` | Phase 5/6 typed `pg` data-access — admin (`product/category/product-media.repository.ts`) and public read-only `catalog.repository.ts` (parameterized SQL, active-only for storefront). |
 | `backend/src/services/drive-url.service.ts` | Phase 5 pure service — validates Google Drive folder URLs, extracts folder IDs (no Drive API calls). |
 | `backend/src/controllers/admin/` | Phase 5 admin controllers — product (auto-suffix create slugs, edit 409, status endpoint, archive-on-delete), category, media. |
+| `backend/src/controllers/public/catalog.controller.ts` | Phase 6 public catalog controller — active-only reads, customer-safe DTOs (never `drive_folder_id`), 503 when DB is unconfigured. |
 | `backend/src/routes/admin.products.routes.ts` | Phase 5 admin route table — every route behind `requireAdmin`; mounted at `/api/admin` by `admin.routes.ts`. |
+| `backend/src/routes/catalog.routes.ts` | Phase 6 public catalog routes — unauthenticated reads mounted at `/api` root. |
 | `backend/src/middleware/` | Request logging; central error handling. |
 | `docs/` | Master Guide (source of truth) + phase documentation + handoffs. |
 
@@ -68,8 +73,10 @@
   icons via `lucide-react`; fonts self-hosted (Inter + Sora variable). See
   [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md).
 - **Data boundary** — UI primitives are prop-driven. `Product` (`src/types/product.ts`) is the
-  storefront projection of the Master Guide §3 model; sample data is isolated in
-  `src/data/mock-products.ts` and clearly marked; the real catalog arrives via backend phases.
+  storefront projection of the Master Guide §3 model. Since Phase 6 the catalog is **live**:
+  `ProductsPage`, `ProductDetailPage`, and the homepage rows read the public catalog API via
+  `lib/catalog.ts`. The old Phase 2 sample file (`src/data/mock-products.ts`) is no longer
+  imported by any page and remains only as a design-system fixture.
 - **State** — URL state (router), local component state, and a Toast context. No global data
   layer yet; it arrives with the backend phases.
 - **SPA hosting** — `frontend/vercel.json` contains SPA rewrites, prepared for the deployment

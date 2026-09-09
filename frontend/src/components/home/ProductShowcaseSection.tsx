@@ -14,6 +14,8 @@ export interface ProductShowcaseSectionProps {
   /** Small honesty note under the heading (e.g. "sample data" notice). */
   note?: string;
   products: Product[];
+  /** Renders skeleton cards while the catalog API responds (Phase 6). */
+  loading?: boolean;
   tone?: "default" | "surface";
 }
 
@@ -25,6 +27,7 @@ export function ProductShowcaseSection({
   description,
   note,
   products,
+  loading = false,
   tone = "default"
 }: ProductShowcaseSectionProps) {
   const { notify } = useToast();
@@ -45,7 +48,9 @@ export function ProductShowcaseSection({
     >
       {note ? <p className="mb-6 text-xs text-subtle-foreground">{note}</p> : null}
       <ProductGrid
-        products={products}
+        products={loading ? undefined : products}
+        loading={loading}
+        skeletonCount={4}
         onAddToCart={(product) =>
           notify(`“${product.name}” — cart & checkout arrive in a later phase.`)
         }

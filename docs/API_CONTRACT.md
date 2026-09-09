@@ -1,8 +1,8 @@
 # PlutoReso — API Contract
 
 > Canonical request/response contract for the PlutoReso backend API.
-> Phase 5 scope: **Authentication + Admin Product Management** endpoints. Public
-> storefront product/order/payment endpoints are future phases.
+> Phase 6 scope: **Authentication + Admin Product Management + Public Storefront
+> Catalog**. Cart/order/payment endpoints are future phases.
 
 ---
 
@@ -13,7 +13,7 @@
 - **Auth:** Session cookie (`plutoreso_session`, HttpOnly). Frontend sends `credentials: "include"`.
 - **Success envelope:** Resource-shaped JSON (no `{ success: true }` wrapper).
 - **Error envelope:** `{ "error": { "message": "..." } }` (never stack traces or SQL).
-- **HTTP codes:** 200 success · 201 created · 400 bad input · 401 unauthenticated · 403 forbidden · 404 not found · 409 conflict · 429 rate-limited · 500 server error.
+- **HTTP codes:** 200 success · 201 created · 400 bad input · 401 unauthenticated · 403 forbidden · 404 not found · 409 conflict · 429 rate-limited · 500 server error · 503 catalog unavailable (DB not configured).
 
 ---
 
@@ -122,6 +122,61 @@ Database readiness probe (real `select 1` round-trip).
 
 ---
 
+## Public Storefront Catalog (Phase 6)
+
+Unauthenticated, read-only endpoints that power the storefront. **No session
+required; no cookies consumed.** Only **active** products and **active**
+categories are ever returned — status filtering is server-enforced and cannot
+be overridden from the client. Responses are customer-safe DTOs: they never
+include `drive_folder_id`, admin metadata, sessions, or internal fields.
+
+### `GET /api/products`
+
+Query (all optional): `page` (default 1) · `perPage` (default 12, max 50) ·
+`category` (category slug) · `search` (name/description, max 200) · `sort`
+(`newest|price-asc|price-desc|name`, default `newest`) · `featured`
+(`true|false`) · `bestSeller` (`true|false`).
+
+**200 Response:**
+
+```json
+{
+  "products": [
+    {
+      "id": "uuid", "name": "...", "slug": "...",
+      "short_description": "...", "price_minor": 19900,
+      "compare_at_price_minor": 29900, "currency": "INR",
+      "category": { "id": "uuid", "name": "...", "slug": "..." },
+      "primary_image": { "id": "uuid", "media_type": "image", "url": "...", "alt_text": "..." },
+      "is_featured": true, "is_best_seller": false
+    }
+  ],
+  "pagination": { "page": 1, "perPage": 12, "total": 42, "totalPages": 4 }
+}
+```
+
+**400:** invalid query (bad slug shape, out-of-range page, unknown sort).
+**503:** database not configured (graceful storefront error state).
+
+### `GET /api/products/:slug`
+
+SEO-friendly lookup by product slug.
+
+**200 Response:** `{ "product": { ...card fields, "full_description", "features": [],
+"benefits": [], "preview_content", "media": [...], "seo_title", "seo_description" } }`
+
+**404:** unknown slug or non-active product (identical response — no
+existence leak for inactive/archived products). **400:** malformed slug.
+**503:** database not configured.
+
+### `GET /api/categories`
+
+**200 Response:** `{ "categories": [{ "id", "name", "slug", "description",
+"sort_order" }] }` — active categories in `sort_order` sequence (empty array
+is valid). **503:** database not configured.
+
+---
+
 ## Admin Product Management (Phase 5)
 
 All endpoints below require an authenticated, active admin session
@@ -206,12 +261,10 @@ No category hard-delete endpoint exists in Phase 5.
 
 ## Future Phases (not yet implemented)
 
-These endpoints are **not** part of Phase 4 and are documented here as the planned contract:
+These endpoints are **not yet implemented** and are documented here as the planned contract:
 
 | Method | Path | Phase |
 |---|---|---|
-| GET | `/api/products` | 6 |
-| GET | `/api/products/:slug` | 6 |
 | POST | `/api/orders` | 7 |
 | POST | `/api/payments/create-order` | 8 |
 | POST | `/api/payments/verify` | 8 |
@@ -221,4 +274,4 @@ These endpoints are **not** part of Phase 4 and are documented here as the plann
 | GET/POST/PATCH | `/api/admin/categories` | 5 IMPLEMENTED |
 
 ---
-_Maintained alongside implementation. Phase 5 scope: auth + health + admin product management._
+_Maintained alongside implementation. Phase 6 scope: auth + health + admin product management + public storefront catalog._
