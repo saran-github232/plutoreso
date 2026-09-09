@@ -9,6 +9,9 @@ import { ProductsPage } from "./pages/ProductsPage";
 import { SystemStatusPage } from "./pages/SystemStatusPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
+import { AdminProductsPage } from "./pages/AdminProductsPage";
+import { AdminProductFormPage } from "./pages/AdminProductFormPage";
+import { AdminCategoriesPage } from "./pages/AdminCategoriesPage";
 import { AdminRouteGuard } from "./components/admin/AdminRouteGuard";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -102,6 +105,38 @@ export default function App() {
           element={
             <AdminRouteGuard>
               <AdminDashboardPage />
+            </AdminRouteGuard>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <AdminRouteGuard>
+              <AdminProductsPage />
+            </AdminRouteGuard>
+          }
+        />
+        <Route
+          path="/admin/products/new"
+          element={
+            <AdminRouteGuard>
+              <AdminProductFormPage />
+            </AdminRouteGuard>
+          }
+        />
+        <Route
+          path="/admin/products/:id/edit"
+          element={
+            <AdminRouteGuard>
+              <AdminProductFormPage />
+            </AdminRouteGuard>
+          }
+        />
+        <Route
+          path="/admin/categories"
+          element={
+            <AdminRouteGuard>
+              <AdminCategoriesPage />
             </AdminRouteGuard>
           }
         />

@@ -32,7 +32,8 @@
 | Path | Responsibility |
 | --- | --- |
 | `frontend/` | Storefront UI (Vercel target). Public configuration only. |
-| `frontend/src/lib/api.ts` | Typed public API client — the only place that talks to the backend. |
+| `frontend/src/lib/admin-api.ts` | Admin catalog API client (Phase 5) — session-cookie fetch wrapper, product/category/media calls. |
+| `frontend/src/pages/AdminProductsPage.tsx`, `AdminProductFormPage.tsx`, `AdminCategoriesPage.tsx` | Phase 5 admin catalog UI (list with search/filter/pagination, create/edit form with rupee→paise conversion, categories). |
 | `frontend/src/components/ui/` | Design-system primitives (Button, Card, ProductCard, Drawer, Toast, states). |
 | `frontend/src/components/layout/`, `home/` | Application shell (Header, Footer) and homepage sections. |
 | `frontend/src/pages/`, `layouts/` | Route pages and SiteLayout (skip link → header → page → footer). |
@@ -41,6 +42,11 @@
 | `backend/src/config/env.ts` | zod-validated configuration; fail-fast startup. |
 | `backend/src/app.ts` | Express app factory: security pipeline + route mounting. |
 | `backend/src/routes/` | Route registry (`/api/health` today; future mounts documented inline). |
+| `backend/src/validation/` | Phase 5 Zod schemas — product, category, product-media (body/query/param validation). |
+| `backend/src/repositories/` | Phase 5 typed `pg` data-access — `product.repository.ts`, `category.repository.ts`, `product-media.repository.ts` (parameterized SQL, soft-lifecycle). |
+| `backend/src/services/drive-url.service.ts` | Phase 5 pure service — validates Google Drive folder URLs, extracts folder IDs (no Drive API calls). |
+| `backend/src/controllers/admin/` | Phase 5 admin controllers — product (auto-suffix create slugs, edit 409, status endpoint, archive-on-delete), category, media. |
+| `backend/src/routes/admin.products.routes.ts` | Phase 5 admin route table — every route behind `requireAdmin`; mounted at `/api/admin` by `admin.routes.ts`. |
 | `backend/src/middleware/` | Request logging; central error handling. |
 | `docs/` | Master Guide (source of truth) + phase documentation + handoffs. |
 

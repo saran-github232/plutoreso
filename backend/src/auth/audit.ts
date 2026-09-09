@@ -15,7 +15,17 @@ export type AuditAction =
   | "admin_logout"
   | "admin_lockout"
   | "admin_bootstrap"
-  | "admin_password_set";
+  | "admin_password_set"
+  // Phase 5 — Catalog mutations
+  | "product.create"
+  | "product.edit"
+  | "product.archive"
+  | "product.status-change"
+  | "category.create"
+  | "category.edit"
+  | "media.create"
+  | "media.edit"
+  | "media.delete";
 
 export interface AuditContext {
   actorId?: string;

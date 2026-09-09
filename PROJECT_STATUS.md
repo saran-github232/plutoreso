@@ -4,8 +4,8 @@
 > of truth is [`docs/MASTER-GUIDE.md`](docs/MASTER-GUIDE.md).
 
 - **Project:** PlutoReso — digital-products e-commerce platform (India · INR · Razorpay · Google Drive delivery)
-- **Current phase:** Phase 2 — Frontend Architecture & Design System ✅ (implemented and verified 2026-09-08)
-- **Last updated:** 2026-09-08
+- **Current phase:** Phase 5 — Admin Product Management ✅ (implemented and verified 2026-09-09)
+- **Last updated:** 2026-09-09
 
 ## Current architecture
 
@@ -53,6 +53,40 @@
       real catalog arrives via backend phases
 - [x] `frontend/vercel.json` SPA rewrites prepared (deployment phase, not deployed)
 
+### Phase 3 — Database & Backend Foundation ✅ (2026-09-08)
+
+- [x] Supabase PostgreSQL schema: 17 tables, 7 ordered idempotent migrations;
+      `pg` data-access layer, typed models, `/api/health/db` readiness;
+      money in minor units; restrictive `order_items.product_id`; RLS
+      default-deny (see `docs/handoffs/STEP-03.md`, `docs/DATABASE.md`)
+
+### Phase 4 — Admin Authentication ✅ (2026-09-08, `eb73a42`)
+
+- [x] Argon2id passwords, server-side sessions (SHA-256 token hashes,
+      HttpOnly cookie), `requireAdmin`/`requireRole`, rate-limited login,
+      logout, `/api/admin/me`, audit logging, bootstrap script, frontend
+      AuthContext + `/admin/login` + guarded `/admin`, 16 vitest tests
+      (see `docs/handoffs/STEP-04.md`, `docs/AUTHENTICATION.md`)
+
+### Phase 5 — Admin Product Management ✅ (2026-09-09)
+
+- [x] Zod validation (product/category/media body/query/param schemas)
+- [x] Typed `pg` repositories (products with search/filter/pagination/sort,
+      categories, media); parameterized SQL; no hard-delete product path
+- [x] Pure Drive folder URL service — validate + extract folder ID, store
+      only `products.drive_folder_id`, never the raw URL
+- [x] Admin controllers + routes: products CRUD, `PATCH :id/status`,
+      `DELETE :id` = archive, media CRUD, categories CRUD — all `requireAdmin`
+- [x] Slug conflicts: create auto-suffixes (`-2`, `-3`, … bounded), edit → 409
+- [x] Audit: `product.create/edit/archive/status-change`,
+      `category.create/edit`, `media.create/edit/delete`
+- [x] Frontend: `lib/admin-api.ts`, `/admin/products` list (search/filter/
+      pagination/activate/archive), `/admin/products/new` + `/:id/edit` form
+      (rupees → paise at boundary, all Master Guide fields),
+      `/admin/categories` (create/edit/activate) — Phase 2 design system
+- [x] 39 new tests (validation 20 + drive-url 19); Phase 4 suite green; total **55/55**; zero new migrations; no new dependencies
+      (see `docs/handoffs/STEP-05.md`, `docs/API_CONTRACT.md`)
+
 ## PARTIALLY COMPLETED
 
 - **Storefront pages:** routing + homepage foundation + catalog preview exist; product detail,
@@ -63,9 +97,6 @@
 
 ## NOT STARTED (per Master Guide §50)
 
-- [ ] Phase 3 — Supabase PostgreSQL schema + data layer
-- [ ] Phase 4 — Admin authentication (server-side sessions)
-- [ ] Phase 5 — Admin product management
 - [ ] Phase 6 — Storefront catalog + product pages (real data)
 - [ ] Phase 7 — Cart & checkout
 - [ ] Phase 8 — Razorpay integration
@@ -79,7 +110,9 @@
 - [ ] Phase 16 — Deployment (Vercel + Render)
 - [ ] Phases 17–19 — Production verification, Meta tracking, launch optimization
 
-No products, payments, admin panel, auth, or delivery exist yet — by design (phase scope).
+Admin panel (login + product/category/media management), auth (server sessions),
+and catalog data layer exist; storefront still uses sample data until Phase 6;
+payments/delivery/email are later phases by design.
 
 ## KNOWN ISSUES
 
@@ -103,18 +136,20 @@ No products, payments, admin panel, auth, or delivery exist yet — by design (p
 - `backend/.env.example` and `frontend/.env.example` created; no real `.env` files required yet;
   **no secrets exist anywhere in the repository**.
 
-## Tests / build status (2026-09-08, after Phase 2)
+## Tests / build status (2026-09-09, after Phase 5)
 
 | Check | Result |
 | --- | --- |
-| `npm install` (with Phase 2 deps) | PASS (added 7 packages) |
-| `npm run lint` | PASS (backend + frontend) |
-| `npm run typecheck` | PASS (backend + frontend, strict) |
-| `npm run build` | PASS (backend `dist/` + frontend `dist/`; JS 277 kB → 86 kB gzip, CSS 39 kB → 8.2 kB gzip) |
-| Backend runtime + `GET /api/health` | PASS (regression check, 200 JSON) |
-| Frontend `/`, `/products`, `/products/:slug`, `/cart` via `vite preview` | PASS (all HTTP 200, SPA fallback works) |
+| Backend `npx tsc --noEmit` | PASS (exit 0) |
+| Frontend `npx tsc -b` | PASS (exit 0) |
+| `npm run lint` (backend + frontend) | PASS (exit 0) |
+| `npm run build` (backend tsc + frontend vite) | PASS (JS ~317 kB → 95 kB gzip, CSS ~42 kB → 8.6 kB gzip) |
+| Backend `npx vitest run` | PASS — 55/55 (drive-url 19, validation 20, auth 16 Phase 4 regression) |
+| Backend runtime + `GET /api/health` | PASS (200 JSON); `GET /api/admin/products` unauthenticated → 401 |
+| Live Supabase verification | BLOCKED — no credentials in this environment (owner action) |
 
 ## NEXT PHASE
 
-**Phase 3 — Database & Backend Foundation** (Supabase PostgreSQL schema + backend data layer) per
-Master Guide §50. Do not begin until the owner provides the Phase 3 prompt.
+**Phase 6 — Storefront/Product Pages** (public `/api/products` catalog APIs +
+real-data product pages) per Master Guide §50. Phase 5 is committed; do not
+begin Phase 6 until the owner provides the Phase 6 prompt.

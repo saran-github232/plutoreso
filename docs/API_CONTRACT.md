@@ -1,7 +1,8 @@
 # PlutoReso — API Contract
 
 > Canonical request/response contract for the PlutoReso backend API.
-> Phase 4 scope: **Authentication** endpoints only. Product/order/payment endpoints are future phases.
+> Phase 5 scope: **Authentication + Admin Product Management** endpoints. Public
+> storefront product/order/payment endpoints are future phases.
 
 ---
 
@@ -12,7 +13,7 @@
 - **Auth:** Session cookie (`plutoreso_session`, HttpOnly). Frontend sends `credentials: "include"`.
 - **Success envelope:** Resource-shaped JSON (no `{ success: true }` wrapper).
 - **Error envelope:** `{ "error": { "message": "..." } }` (never stack traces or SQL).
-- **HTTP codes:** 200 success · 400 bad input · 401 unauthenticated · 403 forbidden · 404 not found · 429 rate-limited · 500 server error.
+- **HTTP codes:** 200 success · 201 created · 400 bad input · 401 unauthenticated · 403 forbidden · 404 not found · 409 conflict · 429 rate-limited · 500 server error.
 
 ---
 
@@ -121,6 +122,88 @@ Database readiness probe (real `select 1` round-trip).
 
 ---
 
+## Admin Product Management (Phase 5)
+
+All endpoints below require an authenticated, active admin session
+(`requireAdmin`, session cookie + `credentials: "include"`). `owner` and
+`admin` roles may manage the catalog. Unauthenticated → **401**.
+
+Money is integer minor units (paise) at the API boundary (`price_minor`).
+The admin form collects rupees and converts at the boundary. Raw Google Drive
+folder URLs are never stored — the backend validates/extracts the folder ID
+and persists only `products.drive_folder_id`.
+
+### `GET /api/admin/products`
+
+Query: `page` (default 1) · `perPage` (default 20, max 100) · `status`
+(`active|inactive|archived`) · `categoryId` (uuid) · `search` (name/slug) ·
+`sort` (`name|price|created|updated|sort_order`) · `order` (`asc|desc`).
+
+**200 Response:**
+
+```json
+{
+  "products": [{ "id": "uuid", "name": "...", "slug": "...", "price_minor": 19900, "status": "active" }],
+  "pagination": { "page": 1, "perPage": 20, "total": 42, "totalPages": 3 }
+}
+```
+
+### `POST /api/admin/products`
+
+**201 Response:** `{ "product": { ... } }` (returns the final slug — auto-suffixed
+`-2`, `-3`, … when the requested slug is taken).
+
+**400:** validation failure (bad slug, negative price, bad status, unknown
+category, malformed Drive folder URL). **409:** not used on create (auto-suffix).
+
+### `GET /api/admin/products/:id`
+
+**200:** `{ "product": { ... } }`. **400:** invalid UUID. **404:** not found.
+
+### `PATCH /api/admin/products/:id`
+
+Partial field update (name, slug, descriptions, prices, category, features,
+benefits, preview, `drive_folder_url`, flags, sort order, SEO).
+
+**200:** `{ "product": { ... } }`. **400:** validation failure.
+**404:** not found. **409:** slug changed to another product's slug.
+
+### `PATCH /api/admin/products/:id/status`
+
+Body: `{ "status": "active" | "inactive" | "archived" }`.
+
+**200:** `{ "product": { ... } }`. **400:** invalid status. **404:** not found.
+
+### `DELETE /api/admin/products/:id`
+
+Soft archive — sets `status = "archived"` (no hard delete; preserves
+restrictive `order_items` references).
+
+**200:** `{ "product": { "id": "uuid", "status": "archived" } }`.
+**404:** not found.
+
+### Product media
+
+- `GET /api/admin/products/:id/media` → **200** `{ "media": [...] }`
+- `POST /api/admin/products/:id/media` → **201** `{ "media": { ... } }`
+  (body: `media_type` in `image|video|preview`, `url`, `alt_text`, `sort_order`)
+- `PATCH /api/admin/products/:id/media/:mediaId` → **200** `{ "media": { ... } }`
+- `DELETE /api/admin/products/:id/media/:mediaId` → **204** (no body)
+
+**400:** invalid type/URL. **404:** product or media not found.
+
+### Categories
+
+- `GET /api/admin/categories` → **200** `{ "categories": [...] }`
+- `POST /api/admin/categories` → **201** `{ "category": { ... } }`
+  (slug auto-suffixed on conflict)
+- `PATCH /api/admin/categories/:id` → **200** `{ "category": { ... } }`
+  (**409** when the slug is changed to another category's slug)
+
+No category hard-delete endpoint exists in Phase 5.
+
+---
+
 ## Future Phases (not yet implemented)
 
 These endpoints are **not** part of Phase 4 and are documented here as the planned contract:
@@ -134,8 +217,8 @@ These endpoints are **not** part of Phase 4 and are documented here as the plann
 | POST | `/api/payments/verify` | 8 |
 | POST | `/api/webhooks/razorpay` | 8 |
 | POST | `/api/auth/customer/*` | 9 |
-| GET/POST/PUT/DELETE | `/api/admin/products` | 5 |
-| GET/POST | `/api/admin/categories` | 5 |
+| GET/POST/PATCH/DELETE | `/api/admin/products` | 5 IMPLEMENTED |
+| GET/POST/PATCH | `/api/admin/categories` | 5 IMPLEMENTED |
 
 ---
-_Maintained alongside implementation. Phase 4 scope: auth + health only._
+_Maintained alongside implementation. Phase 5 scope: auth + health + admin product management._

@@ -1,17 +1,16 @@
 import { Link } from "react-router-dom";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { LayoutGrid, LogOut, ShieldCheck, Tag } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Container } from "../components/ui/Container";
 import { useAuth } from "../context/useAuth";
 
 /**
- * Minimal protected admin shell (Phase 4 / Master Guide §37).
+ * Admin dashboard shell (Phase 4–5 / Master Guide §17–§18).
  *
- * This page proves authentication works. It is intentionally sparse — full Admin
- * Product Management, category/media management, order views, coupons, bundles,
- * and analytics all belong to Phase 5+. The backend independently enforces
- * authorization on every protected request; this page merely reflects auth state.
+ * This page proves authentication works and links to the Phase 5 catalog
+ * management modules (products, categories). Order views, coupons, bundles,
+ * and analytics belong to later phases.
  */
 export function AdminDashboardPage() {
   const { session, logout } = useAuth();
@@ -60,12 +59,38 @@ export function AdminDashboardPage() {
               </p>
             </div>
 
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              <Link
+                to="/admin/products"
+                className="rounded-xl border border-border bg-surface p-5 transition hover:border-primary-300 hover:shadow-card"
+              >
+                <div className="flex items-center gap-3">
+                  <LayoutGrid className="h-5 w-5 text-primary-600" aria-hidden="true" />
+                  <span className="font-semibold text-foreground">Products</span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Create, edit, activate, deactivate, and archive products.
+                </p>
+              </Link>
+              <Link
+                to="/admin/categories"
+                className="rounded-xl border border-border bg-surface p-5 transition hover:border-primary-300 hover:shadow-card"
+              >
+                <div className="flex items-center gap-3">
+                  <Tag className="h-5 w-5 text-primary-600" aria-hidden="true" />
+                  <span className="font-semibold text-foreground">Categories</span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Manage product categories and their display order.
+                </p>
+              </Link>
+            </div>
+
             <div className="mt-8 rounded-lg border border-dashed border-border bg-background p-6">
-              <h2 className="text-sm font-semibold text-foreground">Coming in Phase 5+</h2>
+              <h2 className="text-sm font-semibold text-foreground">Coming in later phases</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                This dashboard will expand to include product management, category and
-                media management, order views, coupon and bundle configuration, and
-                analytics. Those modules are intentionally not built in this phase.
+                Order views, coupon and bundle configuration, analytics, and
+                customer management arrive in future phases (Phase 7+).
               </p>
             </div>
 
