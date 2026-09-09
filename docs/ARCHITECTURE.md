@@ -34,9 +34,11 @@
 | `frontend/` | Storefront UI (Vercel target). Public configuration only. |
 | `frontend/src/lib/admin-api.ts` | Admin catalog API client (Phase 5) — session-cookie fetch wrapper, product/category/media calls. |
 | `frontend/src/lib/catalog.ts` | Public catalog API client (Phase 6) — no-auth fetch of `GET /api/products`, `/api/products/:slug`, `/api/categories`; projects customer-safe DTOs onto the storefront `Product` model. |
+| `frontend/src/lib/checkout.ts` | Storefront checkout API client (Phase 7) — sends only product IDs + customer contact details; never sends money. |
 | `frontend/src/lib/seo.ts` | Per-page `<title>`/meta-description helper (Phase 6) — catalog SEO fields only, resets to site defaults. |
 | `frontend/src/pages/AdminProductsPage.tsx`, `AdminProductFormPage.tsx`, `AdminCategoriesPage.tsx` | Phase 5 admin catalog UI (list with search/filter/pagination, create/edit form with rupee→paise conversion, categories). |
 | `frontend/src/pages/ProductsPage.tsx`, `ProductDetailPage.tsx`, `HomePage.tsx` | Phase 6 storefront — live catalog listing (search/category/sort/pagination in URL state), product detail (gallery, benefits, features, preview), homepage featured/best-seller rows from the API. |
+| `frontend/src/pages/CartPage.tsx`, `CheckoutPage.tsx` | Phase 7 cart & checkout — cart revalidation against authoritative DB prices, order creation (PENDING only, payment-ready). |
 | `frontend/src/components/ui/` | Design-system primitives (Button, Card, ProductCard, Drawer, Toast, states). |
 | `frontend/src/components/layout/`, `home/` | Application shell (Header, Footer) and homepage sections. |
 | `frontend/src/pages/`, `layouts/` | Route pages and SiteLayout (skip link → header → page → footer). |
@@ -45,8 +47,8 @@
 | `backend/src/config/env.ts` | zod-validated configuration; fail-fast startup. |
 | `backend/src/app.ts` | Express app factory: security pipeline + route mounting. |
 | `backend/src/routes/` | Route registry (`/api/health`, `/api/auth`, `/api/admin`, `/api/products`, `/api/products/:slug`, `/api/categories`; future mounts documented inline). |
-| `backend/src/validation/` | Phase 5/6 Zod schemas — admin product, category, product-media; public catalog list/detail query + slug params (strict, capped). |
-| `backend/src/repositories/` | Phase 5/6 typed `pg` data-access — admin (`product/category/product-media.repository.ts`) and public read-only `catalog.repository.ts` (parameterized SQL, active-only for storefront). |
+| `backend/src/validation/` | Phase 5/6/7 Zod schemas — admin product, category, product-media; public catalog list/detail query + slug params; checkout cart/customer validation (strict, money never accepted from client). |
+| `backend/src/repositories/` | Phase 5/6/7 typed `pg` data-access — admin (`product/category/product-media.repository.ts`), public read-only `catalog.repository.ts`, and `checkout.repository.ts` (order + order_item creation, customer upsert, active-product reads — all parameterized SQL). |
 | `backend/src/services/drive-url.service.ts` | Phase 5 pure service — validates Google Drive folder URLs, extracts folder IDs (no Drive API calls). |
 | `backend/src/controllers/admin/` | Phase 5 admin controllers — product (auto-suffix create slugs, edit 409, status endpoint, archive-on-delete), category, media. |
 | `backend/src/controllers/public/catalog.controller.ts` | Phase 6 public catalog controller — active-only reads, customer-safe DTOs (never `drive_folder_id`), 503 when DB is unconfigured. |

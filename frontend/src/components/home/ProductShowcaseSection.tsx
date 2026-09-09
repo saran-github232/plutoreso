@@ -5,6 +5,7 @@ import { buttonClasses } from "../ui/button-styles";
 import { ProductGrid } from "../ui/ProductGrid";
 import { Section } from "../ui/Section";
 import { useToast } from "../ui/useToast";
+import { useCart } from "../../context/useCart";
 
 export interface ProductShowcaseSectionProps {
   id: string;
@@ -31,6 +32,7 @@ export function ProductShowcaseSection({
   tone = "default"
 }: ProductShowcaseSectionProps) {
   const { notify } = useToast();
+  const { addItem, has } = useCart();
 
   return (
     <Section
@@ -47,13 +49,27 @@ export function ProductShowcaseSection({
       }
     >
       {note ? <p className="mb-6 text-xs text-subtle-foreground">{note}</p> : null}
-      <ProductGrid
+            <ProductGrid
         products={loading ? undefined : products}
         loading={loading}
         skeletonCount={4}
-        onAddToCart={(product) =>
-          notify(`“${product.name}” — cart & checkout arrive in a later phase.`)
-        }
+        onAddToCart={(product) => {
+          if (has(product.id)) {
+            notify(`“${product.name}” is already in your cart.`);
+            return;
+          }
+          addItem({
+            productId: product.id,
+            slug: product.slug,
+            name: product.name,
+            priceMinor: product.price.amountMinor,
+            currency: product.price.currency,
+            ...(product.imageUrl
+              ? { imageUrl: product.imageUrl, imageAlt: product.imageAlt ?? product.name }
+              : {}),
+          });
+          notify(`“${product.name}” added to cart.`);
+        }}
       />
     </Section>
   );

@@ -19,6 +19,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { PriceDisplay } from "../components/ui/PriceDisplay";
 import { Skeleton } from "../components/ui/Skeleton";
+import { useCart } from "../context/useCart";
 import { useToast } from "../components/ui/useToast";
 import {
   CatalogApiError,
@@ -58,6 +59,7 @@ function MediaLink({ media }: { media: CatalogMedia }) {
 export function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { notify } = useToast();
+  const { addItem, has } = useCart();
 
   const [product, setProduct] = useState<CatalogProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -276,16 +278,36 @@ export function ProductDetailPage() {
               />
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Button
-                size="lg"
-                onClick={() =>
-                  notify(`“${product.name}” — cart & checkout arrive in a later phase.`)
-                }
-              >
-                <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-                Add to cart
-              </Button>
+                        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              {has(product.id) ? (
+                <Link
+                  to="/cart"
+                  className={buttonClasses("outline", "lg")}
+                >
+                  <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+                  View in cart
+                </Link>
+              ) : (
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    addItem({
+                      productId: product.id,
+                      slug: product.slug,
+                      name: product.name,
+                      priceMinor: product.price_minor,
+                      currency: product.currency,
+                      ...(product.primary_image
+                        ? { imageUrl: product.primary_image.url, imageAlt: product.primary_image.alt_text ?? product.name }
+                        : {}),
+                    });
+                    notify(`“${product.name}” added to cart.`);
+                  }}
+                >
+                  <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+                  Add to cart
+                </Button>
+              )}
               <Link to="/contact" className={buttonClasses("outline", "lg")}>
                 Have a question?
               </Link>

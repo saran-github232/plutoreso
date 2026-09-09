@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { SiteLayout } from "./layouts/SiteLayout";
 import { CartPage } from "./pages/CartPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
 import { HomePage } from "./pages/HomePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
@@ -31,7 +32,8 @@ export default function App() {
           <Route index path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:slug" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
+                    <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route
             path="/about"
             element={

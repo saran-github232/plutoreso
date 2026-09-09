@@ -9,6 +9,7 @@ import { Input } from "../components/ui/Input";
 import { ProductGrid } from "../components/ui/ProductGrid";
 import { Select } from "../components/ui/Select";
 import { useToast } from "../components/ui/useToast";
+import { useCart } from "../context/useCart";
 import {
   fetchCatalogCategories,
   fetchCatalogProducts,
@@ -38,6 +39,7 @@ function isCatalogSort(value: string): value is CatalogSort {
  */
 export function ProductsPage() {
   const { notify } = useToast();
+  const { addItem, has } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -229,11 +231,25 @@ export function ProductsPage() {
                 : ""}
               {search ? ` matching “${search}”` : ""}
             </p>
-            <ProductGrid
+                        <ProductGrid
               products={products}
-              onAddToCart={(product) =>
-                notify(`“${product.name}” — cart & checkout arrive in a later phase.`)
-              }
+              onAddToCart={(product) => {
+                if (has(product.id)) {
+                  notify(`“${product.name}” is already in your cart.`);
+                  return;
+                }
+                                addItem({
+                  productId: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  priceMinor: product.price.amountMinor,
+                  currency: product.price.currency,
+                  ...(product.imageUrl
+                    ? { imageUrl: product.imageUrl, imageAlt: product.imageAlt ?? product.name }
+                    : {}),
+                });
+                notify(`“${product.name}” added to cart.`);
+              }}
             />
             {pagination.totalPages > 1 ? (
               <nav

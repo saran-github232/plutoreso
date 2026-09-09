@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, ShoppingCart } from "lucide-react";
 import { siteConfig } from "../../config/site";
 import { cn } from "../../lib/cn";
+import { useCart } from "../../context/useCart";
 import { Container } from "../ui/Container";
 import { Drawer } from "../ui/Drawer";
 import { IconButton } from "../ui/IconButton";
@@ -13,6 +14,7 @@ const cartLinkClasses =
 /** Sticky application header: desktop nav + intentionally designed mobile drawer. */
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { count } = useCart();
   const location = useLocation();
 
   // Close the mobile menu whenever navigation occurs.
@@ -61,9 +63,17 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-1.5">
-          <Link to="/cart" aria-label="Cart" className={cartLinkClasses}>
+                <div className="flex items-center gap-1.5">
+                    <Link to="/cart" aria-label="Cart" className={cn(cartLinkClasses, "relative")}>
             <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+            {count > 0 ? (
+              <span
+                aria-label={`${count} item${count === 1 ? "" : "s"} in cart`}
+                className="absolute -top-1 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1 text-[10px] font-medium text-white"
+              >
+                {count}
+              </span>
+            ) : null}
           </Link>
           <IconButton
             className="md:hidden"

@@ -1,8 +1,8 @@
 # PlutoReso — API Contract
 
 > Canonical request/response contract for the PlutoReso backend API.
-> Phase 6 scope: **Authentication + Admin Product Management + Public Storefront
-> Catalog**. Cart/order/payment endpoints are future phases.
+> Phase 7 scope: **Authentication + Admin Product Management + Public Storefront
+> Catalog + Cart & Checkout**. Payment endpoints are Phase 8.
 
 ---
 
@@ -259,19 +259,86 @@ No category hard-delete endpoint exists in Phase 5.
 
 ---
 
+## Cart & Checkout (Phase 7)
+
+Public, no-auth endpoints. The browser is **never** trusted for money — the server re-reads active products from the database and computes all totals in integer minor units (paise).
+
+### `POST /api/checkout/validate`
+
+Revalidates a client cart against authoritative DB prices. Used by the cart page to flag unavailable items and detect price changes.
+
+**Body:**
+```json
+{ "items": [{ "product_id": "uuid", "quantity": 1 }] }
+```
+
+`quantity` is clamped to 1 (digital products = one license per purchase). Duplicate product IDs are merged server-side.
+
+**200 Response:**
+```json
+{
+  "cart": {
+    "currency": "INR",
+    "items": [{ "product_id": "uuid", "product_name": "...", "product_slug": "...", "unit_price_minor": 19900, "compare_at_price_minor": null, "currency": "INR", "image_url": "..." }],
+    "unavailable_product_ids": [],
+    "subtotal_minor": 19900
+  }
+}
+```
+
+`unavailable_product_ids` lists IDs that are inactive/archived/unknown. `subtotal_minor` is the authoritative total from DB prices.
+
+**400:** validation failure. **503:** database unavailable.
+
+---
+
+### `POST /api/checkout/prepare`
+
+Creates a PENDING, payment-ready order. The order is never marked PAID — Phase 8 (Razorpay) owns that transition.
+
+**Body:**
+```json
+{
+  "items": [{ "product_id": "uuid", "quantity": 1 }],
+  "customer": { "name": "...", "email": "...", "phone": "..." },
+  "client_request_id": "uuid"
+}
+```
+
+`client_request_id` is an optional idempotency key — when supplied, a recent PENDING order for the same customer with the same product set (within 24 hours) is returned instead of creating a duplicate.
+
+**201 Response:**
+```json
+{
+  "order": {
+    "order_number": "PLT-2026-000042",
+    "status": "PENDING",
+    "currency": "INR",
+    "subtotal_minor": 19900,
+    "discount_minor": 0,
+    "total_minor": 19900,
+    "items": [{ "product_id": "uuid", "product_name": "...", "product_slug": "...", "unit_price_minor": 19900, "compare_at_price_minor": null, "quantity": 1, "line_total_minor": 19900 }],
+    "created_at": "..."
+  }
+}
+```
+
+**400:** validation failure. **409:** some items unavailable (includes `unavailable_product_ids`). **503:** database unavailable.
+
 ## Future Phases (not yet implemented)
 
 These endpoints are **not yet implemented** and are documented here as the planned contract:
 
 | Method | Path | Phase |
 |---|---|---|
-| POST | `/api/orders` | 7 |
 | POST | `/api/payments/create-order` | 8 |
 | POST | `/api/payments/verify` | 8 |
 | POST | `/api/webhooks/razorpay` | 8 |
 | POST | `/api/auth/customer/*` | 9 |
 | GET/POST/PATCH/DELETE | `/api/admin/products` | 5 IMPLEMENTED |
 | GET/POST/PATCH | `/api/admin/categories` | 5 IMPLEMENTED |
+| POST | `/api/checkout/validate` | 7 IMPLEMENTED |
+| POST | `/api/checkout/prepare` | 7 IMPLEMENTED |
 
 ---
-_Maintained alongside implementation. Phase 6 scope: auth + health + admin product management + public storefront catalog._
+_Maintained alongside implementation. Phase 7 scope: auth + health + admin product management + public storefront catalog + cart & checkout._

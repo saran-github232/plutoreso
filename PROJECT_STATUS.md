@@ -4,8 +4,8 @@
 > of truth is [`docs/MASTER-GUIDE.md`](docs/MASTER-GUIDE.md).
 
 - **Project:** PlutoReso — digital-products e-commerce platform (India · INR · Razorpay · Google Drive delivery)
-- **Current phase:** Phase 5 — Admin Product Management ✅ (implemented and verified 2026-09-09)
-- **Last updated:** 2026-09-09
+- **Current phase:** Phase 7 — Cart & Checkout ✅ (implemented and verified 2026-09-10)
+- **Last updated:** 2026-09-10
 
 ## Current architecture
 
@@ -68,6 +68,27 @@
       AuthContext + `/admin/login` + guarded `/admin`, 16 vitest tests
       (see `docs/handoffs/STEP-04.md`, `docs/AUTHENTICATION.md`)
 
+### Phase 7 — Cart & Checkout ✅ (2026-09-10)
+
+- [x] Centralized cart state (`CartContext`) with versioned localStorage persistence, corrupted-data recovery, and no payment credentials/secrets ever stored
+- [x] Cart add/remove/clear, duplicate prevention, server-supplied display snapshot (priceMinor, currency, image)
+- [x] Cart page: authoritative revalidation against DB prices, unavailable-item removal, price-change flags, subtotal, empty state, checkout CTA
+- [x] Checkout page: name/email/phone collection, client-side validation, server-authoritative PENDING order creation
+- [x] Backend checkout endpoints: `POST /api/checkout/validate` (cart revalidation) + `POST /api/checkout/prepare` (order creation)
+- [x] Server-authoritative pricing: integer minor units (paise) from DB, browser never trusted for money
+- [x] Product validation: active-only, reject unavailable products, authoritative line/subtotals
+- [x] Order foundation: PENDING status only, order_items snapshots (name, slug, unit_price, line_total), no payment created
+- [x] Customer upsert by email (citext), idempotency-safe dedupe via `client_request_id`
+- [x] Explicit DTOs: `PublicOrder`, `PublicOrderItem`, `PublicValidatedCart` — raw DB rows never returned
+- [x] drive_folder_id never exposed in checkout responses
+- [x] 29 new checkout tests; total **96/96**; typecheck, lint, build all green
+
+### Phase 6 — Storefront / Product Pages ✅ (2026-09-09)
+
+- [x] Public catalog API (`/api/products`, `/api/products/:slug`, `/api/categories`) — active products only, customer-safe DTOs
+- [x] Live product listing (search/category/sort/pagination), product detail (gallery, benefits, features, preview), homepage featured/best-seller rows
+- [x] Mock-data file no longer imported by any page (design-system fixture only)
+
 ### Phase 5 — Admin Product Management ✅ (2026-09-09)
 
 - [x] Zod validation (product/category/media body/query/param schemas)
@@ -89,16 +110,11 @@
 
 ## PARTIALLY COMPLETED
 
-- **Storefront pages:** routing + homepage foundation + catalog preview exist; product detail,
-  cart, about/FAQ/contact and policy pages are honest placeholders pending backend/content phases.
-- **Product UI:** production-ready primitives, but fed by clearly-marked sample data until the
-  backend catalog exists (Phase 3/6).
+- **Product UI:** production-ready primitives fed by live catalog data (Phase 6/7).
 - **WhatsApp CTA:** UI + config boundary exist; no number configured until the business provides one.
 
 ## NOT STARTED (per Master Guide §50)
 
-- [ ] Phase 6 — Storefront catalog + product pages (real data)
-- [ ] Phase 7 — Cart & checkout
 - [ ] Phase 8 — Razorpay integration
 - [ ] Phase 9 — Webhooks + payment verification
 - [ ] Phase 10 — Entitlements + Google Drive delivery
@@ -136,20 +152,18 @@ payments/delivery/email are later phases by design.
 - `backend/.env.example` and `frontend/.env.example` created; no real `.env` files required yet;
   **no secrets exist anywhere in the repository**.
 
-## Tests / build status (2026-09-09, after Phase 5)
+## Tests / build status (2026-09-10, after Phase 7)
 
 | Check | Result |
 | --- | --- |
 | Backend `npx tsc --noEmit` | PASS (exit 0) |
 | Frontend `npx tsc -b` | PASS (exit 0) |
 | `npm run lint` (backend + frontend) | PASS (exit 0) |
-| `npm run build` (backend tsc + frontend vite) | PASS (JS ~317 kB → 95 kB gzip, CSS ~42 kB → 8.6 kB gzip) |
-| Backend `npx vitest run` | PASS — 55/55 (drive-url 19, validation 20, auth 16 Phase 4 regression) |
+| `npm run build` (backend tsc + frontend vite) | PASS (JS ~345 kB → 102 kB gzip, CSS ~45 kB → 9 kB gzip) |
+| Backend `npx vitest run` | PASS — 96/96 (checkout 29, catalog 12, drive-url 19, validation 20, auth 16) |
 | Backend runtime + `GET /api/health` | PASS (200 JSON); `GET /api/admin/products` unauthenticated → 401 |
 | Live Supabase verification | BLOCKED — no credentials in this environment (owner action) |
 
 ## NEXT PHASE
 
-**Phase 6 — Storefront/Product Pages** (public `/api/products` catalog APIs +
-real-data product pages) per Master Guide §50. Phase 5 is committed; do not
-begin Phase 6 until the owner provides the Phase 6 prompt.
+**Phase 8 — Razorpay Integration** (payment provider integration, order creation, payment verification, webhook handling) per Master Guide §50. Phase 7 is committed; do not begin Phase 8 until the owner provides the Phase 8 prompt.

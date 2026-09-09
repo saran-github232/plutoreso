@@ -3,6 +3,7 @@ import { healthRouter } from "./health.routes.js";
 import { authRouter } from "./auth.routes.js";
 import { adminRouter } from "./admin.routes.js";
 import { catalogRouter } from "./catalog.routes.js";
+import { checkoutRouter } from "./checkout.routes.js";
 
 export const apiRouter = Router();
 
@@ -24,9 +25,9 @@ apiRouter.use("/admin", adminRouter);
 apiRouter.use("/", catalogRouter);
 
 /*
- * Future phase mounts (do NOT implement before their phase):
- *
- *   Phase 7+  /orders, /payments – checkout + Razorpay order creation/verification
- *   Phase 9   /webhooks/razorpay – signature-verified, idempotent webhook endpoint
- *   Phase 10+ /entitlements      – access-controlled digital delivery layer
+ * Phase 7 — Cart & checkout foundation (Master Guide §54 success metric:
+ * browse → cart → checkout → order). No payment here (Phase 8 = Razorpay).
+ *   POST /api/checkout/validate — revalidate a cart against active products
+ *   POST /api/checkout/prepare  — create a PENDING, payment-ready order
  */
+apiRouter.use("/checkout", checkoutRouter);

@@ -5,6 +5,7 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/sora";
 import App from "./App";
 import { ToastProvider } from "./components/ui/Toast";
+import { CartProvider } from "./context/CartContext";
 import { ScrollToTop } from "./lib/ScrollToTop";
 import "./index.css";
 
@@ -18,8 +19,10 @@ createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>
       <ToastProvider>
-        <ScrollToTop />
-        <App />
+        <CartProvider>
+          <ScrollToTop />
+          <App />
+        </CartProvider>
       </ToastProvider>
     </BrowserRouter>
   </StrictMode>
