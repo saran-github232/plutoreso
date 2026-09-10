@@ -33,7 +33,15 @@ const envSchema = z
     SESSION_SECRET: z.string().optional(),
     // Admin login brute-force protection.
     LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
-    LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().positive().default(15)
+    LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().positive().default(15),
+
+    // --- Phase 8: Razorpay payment configuration ---------------------
+    // SERVER-ONLY. Key ID is passed to the frontend; Key Secret never is.
+    // Optional locally so the API boots without Razorpay; the payment
+    // endpoints return 503 when unset. REQUIRED in production once payments
+    // go live.
+    RAZORPAY_KEY_ID: z.string().trim().min(1).optional(),
+    RAZORPAY_KEY_SECRET: z.string().trim().min(1).optional(),
   })
   .superRefine((value, ctx) => {
     if (value.NODE_ENV === "production" && !value.CLIENT_ORIGIN) {

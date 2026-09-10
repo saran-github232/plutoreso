@@ -30,6 +30,8 @@ export interface PublicOrderItem {
 }
 
 export interface PublicOrder {
+  /** Local PlutoReso order UUID — the reference the payment endpoint needs. */
+  id: string;
   order_number: string;
   status: string;
   currency: string;
@@ -43,6 +45,7 @@ export interface PublicOrder {
 /** Projects an order + its item rows onto the public, customer-safe DTO. */
 export function toPublicOrder(order: OrderRow, items: OrderItemRow[]): PublicOrder {
   return {
+    id: order.id,
     order_number: order.order_number,
     status: order.status,
     currency: order.currency,

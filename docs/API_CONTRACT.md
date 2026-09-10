@@ -1,8 +1,9 @@
 # PlutoReso — API Contract
 
 > Canonical request/response contract for the PlutoReso backend API.
-> Phase 7 scope: **Authentication + Admin Product Management + Public Storefront
-> Catalog + Cart & Checkout**. Payment endpoints are Phase 8.
+> Phase 8 scope: **Authentication + Admin Product Management + Public Storefront
+> Catalog + Cart & Checkout + Razorpay Payment Integration**. Payment verification
+> and webhooks are Phase 9.
 
 ---
 
@@ -311,6 +312,7 @@ Creates a PENDING, payment-ready order. The order is never marked PAID — Phase
 ```json
 {
   "order": {
+    "id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
     "order_number": "PLT-2026-000042",
     "status": "PENDING",
     "currency": "INR",
@@ -322,8 +324,51 @@ Creates a PENDING, payment-ready order. The order is never marked PAID — Phase
   }
 }
 ```
+`order.id` is the local order UUID reference consumed by the payment endpoints (Phase 8).
 
 **400:** validation failure. **409:** some items unavailable (includes `unavailable_product_ids`). **503:** database unavailable.
+
+## Razorpay Payments (Phase 8)
+
+Public, no-auth endpoint. The browser sends **only** the local order ID. The server loads the authoritative amount from the local order in PostgreSQL.
+
+### `POST /api/payments/razorpay/order`
+
+Creates a Razorpay order for an existing local PENDING order and returns the configuration needed to open Razorpay Standard Checkout.
+
+**Body:**
+```json
+{ "order_id": "uuid" }
+```
+
+`order_id` is the local PlutoReso order ID (UUID). The amount, currency, and order state are re-read from the database — never trusted from the browser.
+
+**201 Response:**
+```json
+{
+  "razorpay_order_id": "order_xxxxxxxxxx",
+  "amount_minor": 19900,
+  "currency": "INR",
+  "key_id": "rzp_test_xxxxxxxxxx",
+  "order_number": "PLT-2026-000042",
+  "order_status": "PAYMENT_INITIATED",
+  "business_name": "PlutoReso",
+  "description": "Digital product purchase"
+}
+```
+
+`amount_minor` is the authoritative amount in integer minor units (paise). `key_id` is the Razorpay Key ID (safe to expose). `order_status` is `PAYMENT_INITIATED` — the order is NOT marked PAID.
+
+**200 Response:** returned on an idempotent retry when the local order already has an unpaid
+(`created`) payment — the same Razorpay order is reused, no new provider order is created.
+
+**400:** validation failure. **404:** order not found. **409:** order is not in a payable state
+(`PENDING` or `PAYMENT_INITIATED`) or amount is invalid. **502:** Razorpay provider error. **503:** database unavailable or Razorpay not configured.
+
+**Security:**
+- The Razorpay Key Secret is NEVER returned.
+- The server creates the Razorpay order using the authoritative local order amount.
+- A successful browser Checkout callback is NOT treated as final payment — Phase 9 owns verification.
 
 ## Future Phases (not yet implemented)
 
@@ -331,9 +376,8 @@ These endpoints are **not yet implemented** and are documented here as the plann
 
 | Method | Path | Phase |
 |---|---|---|
-| POST | `/api/payments/create-order` | 8 |
-| POST | `/api/payments/verify` | 8 |
-| POST | `/api/webhooks/razorpay` | 8 |
+| POST | `/api/payments/verify` | 9 |
+| POST | `/api/webhooks/razorpay` | 9 |
 | POST | `/api/auth/customer/*` | 9 |
 | GET/POST/PATCH/DELETE | `/api/admin/products` | 5 IMPLEMENTED |
 | GET/POST/PATCH | `/api/admin/categories` | 5 IMPLEMENTED |

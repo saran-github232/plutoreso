@@ -95,6 +95,37 @@ helmet (security headers) → CORS allowlist → JSON body parsing (100 kb limit
 - Clients always receive safe, generic error messages; technical details are logged server-side only.
 - Graceful shutdown on SIGTERM/SIGINT (Render-compatible).
 
+## Payment architecture (Phase 8 — Razorpay, implemented)
+
+Customer flow: **Products → Cart → Checkout (PENDING order) → Razorpay order →
+Standard Checkout → browser result → submitted/awaiting verification (Phase 9)**.
+
+Flow and responsibilities:
+
+```text
+POST /api/checkout/prepare            → local PENDING order (authoritative DB pricing)
+POST /api/payments/razorpay/order     → server loads order, validates state, creates the
+                                        Razorpay order from the DB amount (minor units),
+                                        records a `payments` row (status `created`),
+                                        flips the local order to PAYMENT_INITIATED
+Browser                            → Razorpay Standard Checkout (key_id only; never secret)
+Browser success callback           → "Payment submitted — awaiting verification" (NOT paid)
+Phase 9                            → server-side verification + webhooks finalize PAID
+```
+
+- **Money security:** the browser sends only the local order UUID. Amount, currency, and
+  order state are re-read from PostgreSQL; totals are integer minor units (paise). No
+  browser-supplied price/total/currency is ever used.
+- **Idempotency:** the first call creates one Razorpay order; retries for the same local
+  order reuse the recorded `created` payment (`findLatestPaymentForOrder`) and return 200,
+  so repeated clicks / modal reopens never create duplicate Razorpay orders.
+- **Razorpay boundary:** all provider code lives in `backend/src/services/razorpay.service.ts`
+  (SDK client, order creation, error normalization). The Key Secret exists only in the
+  backend environment and is never logged, returned, or committed. The frontend receives
+  only the Key ID.
+- **Phase 9 boundary:** nothing in Phase 8 verifies signatures, processes webhooks, or marks
+  an order PAID. The browser result is deliberately treated as unverified.
+
 ## Environment boundaries
 
 See [`ENVIRONMENT.md`](ENVIRONMENT.md). Backend = private secrets. Frontend = public config only.
@@ -105,7 +136,7 @@ See [`ENVIRONMENT.md`](ENVIRONMENT.md). Backend = private secrets. Frontend = pu
 | --- | --- | --- |
 | Supabase PostgreSQL | 3 | DB is the source of truth for products, customers, orders, payments, entitlements, bundles, coupons, admins, webhook events, settings, audit logs. |
 | Admin authentication | 4 | Server-side sessions, password hashing, rate limiting; backend authorization mandatory (never frontend-only). |
-| Razorpay payments | 8 | Backend creates orders; server-side signature verification; never trust frontend payment success. |
+| Razorpay payments | 8 IMPLEMENTED | Backend creates orders; server-side signature verification; never trust frontend payment success. See ["Payment architecture"](#payment-architecture-phase-8--razorpay-implemented). |
 | Razorpay webhooks | 9 | Raw body + signature validation, idempotency, single fulfillment, correct responses. |
 | Google Drive delivery | 10 | Drive folder IDs validated/stored server-side; access only via verified entitlements; storage abstracted so it can be replaced (S3/R2) without rewriting commerce. |
 | Email | 12 | Transactional provider credentials server-side only. |

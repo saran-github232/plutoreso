@@ -27,12 +27,13 @@ No real credentials exist or are required in Phase 1. Do not invent values.
 | `SESSION_SECRET` | **4 (required in production)** | Admin session cookie signing/rotation secret. In development a per-process ephemeral value is generated if unset; production MUST set a stable value. **SERVER-ONLY**. | Placeholder name only — no value |
 | `LOGIN_MAX_ATTEMPTS` | 4 | Max failed admin login attempts before lockout (default `5`). **SERVER-ONLY**. | Example only |
 | `LOGIN_LOCKOUT_MINUTES` | 4 | Lockout duration in minutes after exceeding `LOGIN_MAX_ATTEMPTS` (default `15`). **SERVER-ONLY**. | Example only |
+| `RAZORPAY_KEY_ID` | 8 (optional locally) | Razorpay Key ID — safe to expose to the frontend for Standard Checkout. **Required in production**; payment endpoints return 503 when unset. | Placeholder name only — no value |
+| `RAZORPAY_KEY_SECRET` | 8 (optional locally) | Razorpay Key Secret — used to create orders server-side. **SERVER-ONLY, never exposed to the frontend, never logged or committed.** | Placeholder name only — no value |
 
 Future backend variables (documented in `backend/.env.example`; do **not** create until their phase):
 
 | Variable | Phase | Notes |
 | --- | --- | --- |
-| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | 8 | Server-side only — never expose |
 | `RAZORPAY_WEBHOOK_SECRET` | 9 | Server-side only |
 | `GOOGLE_DRIVE_*` | 10 | Delivery credentials stay server-side |
 | `EMAIL_*` / `SMTP_*` | 12 | Transactional email provider |

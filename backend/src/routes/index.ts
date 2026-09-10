@@ -4,6 +4,7 @@ import { authRouter } from "./auth.routes.js";
 import { adminRouter } from "./admin.routes.js";
 import { catalogRouter } from "./catalog.routes.js";
 import { checkoutRouter } from "./checkout.routes.js";
+import { paymentRouter } from "./payment.routes.js";
 
 export const apiRouter = Router();
 
@@ -31,3 +32,11 @@ apiRouter.use("/", catalogRouter);
  *   POST /api/checkout/prepare  — create a PENDING, payment-ready order
  */
 apiRouter.use("/checkout", checkoutRouter);
+
+/*
+ * Phase 8 — Razorpay payment integration (Master Guide §54:
+ * order → payment). Creates Razorpay orders; Standard Checkout.
+ *   POST /api/payments/razorpay/order — create a Razorpay order for a
+ *   local PENDING order. Phase 9 owns verification + webhooks.
+ */
+apiRouter.use("/payments", paymentRouter);

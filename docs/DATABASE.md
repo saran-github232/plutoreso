@@ -166,6 +166,11 @@ Apply options:
 
 ## Future migration notes
 
+- **Phase 8 (Razorpay) required no migration.** It reuses the Phase 3 `payments` table
+  (`provider = 'razorpay'`, `provider_order_id`, `status = 'created'`, integer `amount_minor`,
+  `currency`) plus the `orders.status` enum value `PAYMENT_INITIATED`. No new columns were
+  needed; the partial unique index on `(provider, provider_order_id)` already guards
+  duplicate Razorpay orders.
 - Adding enum values: `ALTER TYPE ... ADD VALUE` in a new migration; never edit applied files.
 - Customer-facing RLS policies (Phase 4+/10): add per-table policies in new migrations, keep
   default-deny everywhere else, re-verify the anon surface after every change.
